@@ -1,0 +1,28 @@
+---
+# tasks file for cron
+
+  - name: install apt packages
+    become: yes
+    apt: name={{ item }} state=latest
+    loop: ['python3', 'python3-pip']
+    register: install_apt
+
+  - name: install python packages
+    become: yes
+    pip: name=python-crontab executable=pip3
+    register: install_python
+    when: install_apt is succeeded
+ 
+  - name: set the cron job 
+    script: set_cron.py
+    become: yes
+    when: install_python is succeeded
+
+  - name: wait for cron for 1 min
+    pause: minutes=1
+
+  - name: check cron works
+    shell: diff /opt/service_state /tmp/service_state_original
+    register: file_changed
+    failed_when: file_changed.rc == 0
+

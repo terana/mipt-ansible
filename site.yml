@@ -4,10 +4,20 @@
 # Or, you can create separate playbooks in this directory for specific orchestration events.
 
 ---
-- name: apply common configuration to all nodes
-  hosts: all
-  user: root
+#- name: apply common configuration to all nodes
+#  hosts: all
+#  user: root
 
+#  roles:
+#    - common
+
+- name: Nginx
+  hosts: nginx
   roles:
-    - common
+    - nginx
+
+- name: Cron
+  hosts: nginx
+  roles:
+    - cron
 
