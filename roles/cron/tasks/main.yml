@@ -19,7 +19,7 @@
     when: install_python is succeeded
 
   - name: wait for cron for 1 min
-    pause: minutes=1
+    pause: seconds=65
 
   - name: check cron works
     shell: diff /opt/service_state /tmp/service_state_original

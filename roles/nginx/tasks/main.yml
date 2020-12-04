@@ -7,7 +7,7 @@
    notify:
      - Nginx restart
 
- - name: copy the nginx config file and restart nginx
+ - name: copy the nginx config file
    when: nginx_installed is succeeded
    template: src=static_site.j2 dest=/etc/nginx/sites-available/static_site.conf
    become: yes
@@ -21,21 +21,37 @@
      state: link
    become: yes
 
- - name: copy the static content to serve 
-   when: nginx_installed is succeeded
-   copy: src=service_state dest=/opt/service_state
-   become: yes
- 
- - name: copy file for sanity checks 
-   when: nginx_installed is succeeded
-   copy: src=service_state dest=/tmp/service_state_original
-   become: yes
- 
  - name: check and reload
    become: yes
    when: nginx_conf_copy.changed
    shell: /usr/sbin/nginx -t
    notify:
      - Nginx reload
+ 
+ - name: copy the static content to serve 
+   when: nginx_conf_copy.changed
+   copy: src=service_state dest={{ item }}
+   loop: ['/opt/service_state', '/tmp/service_state_original']
+   become: yes
+   register: service_state_copy
+ 
+ - name: check the first line of the local service state file
+   when: service_state_copy is succeeded
+   command: head -1 roles/nginx/files/service_state
+   delegate_to: 127.0.0.1
+   register: service_state_local
+ 
+ - name: check the first line of the target service state file
+   when: service_state_copy is succeeded
+   become: yes
+   command: head -1 /opt/service_state
+   register: service_state_target
 
-
+ - name: update service state and restart nginx
+   when: service_state_local.stdout != service_state_target.stdout 
+   copy: src=service_state dest={{ item }}
+   loop: ['/opt/service_state', '/tmp/service_state_original']
+   become: yes
+   notify:
+     - Nginx restart
+ 
