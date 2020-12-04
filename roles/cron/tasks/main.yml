@@ -17,9 +17,11 @@
     script: set_cron.py
     become: yes
     when: install_python is succeeded
+    register: set_cron 
 
-  - name: wait for cron for 1 min
-    pause: seconds=65
+  - name: wait for cron
+    pause: seconds=90
+    when: set_cron is succeeded
 
   - name: check cron works
     shell: diff /opt/service_state /tmp/service_state_original

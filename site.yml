@@ -12,12 +12,12 @@
 #    - common
 
 - name: Nginx
-  hosts: nginx
+  hosts: ubuntu 
   roles:
     - nginx
 
 - name: Cron
-  hosts: nginx
+  hosts: ubuntu
   roles:
     - cron
 
